@@ -1,0 +1,150 @@
+1. 下面的代码输出什么？解释你的答案？如何解决所出现的问题。
+console.log(0.1 + 0.2);
+console.log(0.1 + 0.2 == 0.3);
+
+答：不能确定打印出0.3和true, 可能不总是产生预期的结果. 在ECMAScript规范中, 整数和浮点数采用的是同样的储存方法, 始终作为浮点值存储. (64位双精度格式，数值精度最多53 个二进制位, 1个隐藏位与 52 个有效位)
+
+解决：
+function almostEqual(num1, num2) {
+  // Number.EPSILON === Math.pow(2, -52);
+  // 小于这个值不代表存在误差
+  return Math.abs(num1 - num2) < Number.EPSILON
+}
+almostEqual(0.1 + 0.2, 0.3); // true
+
+扩展: 判断是否为整数? 
+
+  1.ES6中用Number.isInteger()
+    参数不是数值返回false
+    超过限度的部分会被丢弃
+    数值绝对值小于Number.MIN_VALUE会自动转为0
+    25 和 25.0 被视为同一个值，返回true
+  2.ES6之前
+    // 按位异或运算符 最优雅
+    function isInteger(x) { return (x ^ 0) === x; }
+    // 按位异或运算符 最优雅
+    function isInteger(x) { return (typeof x === 'number' && x % 1 === 0); }
+    // 
+    function isInteger(x) { 
+      // return Math.ceil(x) === x; 
+      // return Math.floor(x) === x; 
+      return Math.round(x) === x; 
+    }
+  3.错误解决：
+  function isInteger (x) {
+    return parseInt(x, 10) === x;
+  }
+  String(100000000000000000000000000000000000000000); // 1e+41
+  parseInt(100000000000000000000000000000000000000000, 10); // 1
+  isInteger(100000000000000000000000000000000000000000); // false
+
+2. 在for循环中定义一个onclick的函数，当点击时输出的i值是？ 以及提供一个或多个的替代解决方案.
+
+3. var a = [1, 2, 3]; 
+
+a[10] = 99, 会导致崩溃么? 答：不会崩溃，3-9成为空插槽
+console.log(a[6]); 输出undefined，但实际上是empty, 使用map时，空插槽的值不被重映射
+
+var b = [undefined];
+b[2] = 1;
+console.log(b); // (3) [undefined, empty, 1]
+console.log(b.map(e => 7)); // (3) [7, empty, 7]
+
+4. 
+(function(x) {
+  return (function(y) {
+    console.log(x); // 1
+  })(2);
+})(1);
+闭包是一个函数, 闭包的一个重要特征是内部函数可以访问外部函数的变量
+
+5.以下代码的输出是什么? 解释你的答案
+var a = {},
+b = {key: 'b'},
+c = {key: 'c'};
+a[b] = 123;
+a[c] = 456;
+console.log(a[b]); // 456
+
+设置对象属性时, js会隐式地将参数值串联起来, b和c都是对象, 都被转为[object Object], 所以a[b]和a[c]都等价于a[‘[object Object]’]
+
+6. 以下代码将输出什么到控制台, 以及为什么?
+var hero = {
+  _name: 'Jogn Doe',
+  getSecretIdentity: function() {
+    return this._name;
+  }
+}
+var stoleSecretIdentity = hero.getSecretIdentity;
+console.log(stoleSecretIdentity()); // undefiend 窗口对象中调用, 全局上下文不存在_name属性
+console.log(hero.getSecretIdentity()); // Jogn Doe hero对象中提取
+// 修复stoleSecretIdentity
+var stoleSecretIdentity = hero.getSecretIdentity.bind(hero); 
+
+7. 
+console.log( (function f(n) {return ( (n > 1 ? n * f(n - 1) : n) )})(10) ); // 10! 或 3628800    10的阶乘   递归方式
+
+8. 考虑下面的代码, 输出是什么, 为什么
+(function() {
+  try {
+    throw new Error();
+  } catch (x) {
+    var x = 1, y = 2;
+    console.log(x);
+  }
+  console.log(x);
+  console.log(y);
+})();
+
+var 语句被挂起到它所属的全局或函数作用域的顶部，即使位于with或catch块内. 但是, 错误的标识符只在catch块内部可见, 等同于如下
+
+(function() {
+  var x, y; // outer
+  try {
+    // throw new Error();
+  } catch (x) { // inner
+    x = 1; // inner
+    y = 2; // outer
+    console.log(x); // inner
+  } 
+  console.log(x);
+  console.log(y);
+})();
+
+9. 这段代码输出什么?
+var x = 21;
+var girl = function() {
+  console.log(x);
+  var x = 20;
+}
+girl(); // undefined
+
+函数执行时, 检查本地存在x变量, 但是并未被声明(变量声明提升), 因此并不会查找全局变量
+
+10. 以下几行代码输出到控制台
+console.log("0 || 1 = " + (0 || 1)); // 0 || 1 = 1
+console.log("0 || false = " + (0 || false)); // 0 || false = false
+console.log("1 || 2 = " + (1 || 2)); // 1 || 2 = 1
+console.log("0 && 1 = " + (0 && 1)); // 0 && 1 = 0
+console.log("1 && 2 = " + (1 && 2)); // 1 && 2 = 2
+
+将逻辑运算符左右两边的值解释为布尔值, 但是返回值是表达式本身
+
+11. 下面的代码将输出什么到控制台, 为什么
+var arr1 = "john".split(""); // ['j', 'o', 'h', 'n'] -> ['n', 'h', 'o', 'j']
+var arr2 = arr1.reverse(); // ['n', 'h', 'o', 'j']
+var arr3 = "jones".split(""); // ['j', 'o', 'n', 'e', 's']
+arr2.push(arr3); // ['n', 'h', 'o', 'j', ['j', 'o', 'n', 'e', 's']]
+console.log("arr1: length=" + arr1.length + ", last=" + arr1.slice(-1)); // arr1: length=5, last=j,o,n,e,s
+console.log("arr2: length=" + arr2.length + ", last=" + arr2.slice(-1)); // arr2: length=5, last=j,o,n,e,s
+
+reverse() 会改变原数组, 并不会创建新数组, 这里arr2是arr1的引用不是副本
+slice(begin, end)创建新数组, 包含begin不包含end, end和begin可以为负数, 指代倒数第几个
+
+12. 下面的代码将输出什么到控制台, 为什么?
+console.log(1 + "2" + "2"); // 122 数字和字符串相加被转成字符串
+console.log(1 + + "2" + "2"); // 32
+console.log(1 + - "1" + "2"); // 02 被转成了数字
+console.log(+ "1" + "1" + "2"); // 112 数字1 + 字符串1
+console.log("A" - "B" + "2"); // NaN2 A和B不能转换为数值相减 但是可以和字符串串联
+console.log("A" - "B" + 2); // NaN + 2 还是NaN 
